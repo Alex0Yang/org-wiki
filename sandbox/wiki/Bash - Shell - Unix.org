@@ -1,7 +1,5 @@
 #+INCLUDE: theme/style.org
-#+TITLE: Bash Script 
-
-[[wiki:index][index]]
+#+TITLE: Bash
 
 Related: [[wiki:Linux][Linux]] [[wiki:Python][Python]] [[wiki:The Art of Unix Programming][The Art of Unix Programming]]
 

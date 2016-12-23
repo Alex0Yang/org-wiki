@@ -45,6 +45,7 @@
 
 ;; external libraries
 (require 'ox-html)
+(require 'ox-md)
 (require 'helm)
 
 ;; built-in Emacs lib
@@ -288,7 +289,11 @@ will be exported to <a href='Linux.html'>Dealing with Linux</a>"
      (html (format
             "<a href='%s.html'>%s</a>"
             path
-            (or desc path)))))
+            (or desc path)))
+     (md (format
+            "<a href='%s.html'>%s</a>"
+            path
+           (or desc path)))))
 
 (defun org-wiki--make-link (pagename)
   "Return a string containing a wiki link [[wiki:PAGENAME][PAGENAME]].
