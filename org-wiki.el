@@ -110,7 +110,7 @@ You can toggle read-only mode with M-x read-only-mode or C-x C-q."
 (defcustom org-wiki-clip-jar-path "~/bin/Clip.jar"
   "Path to Clip.jar utility to paste images from clipboard."
   :type 'file
-  :group 'org-wiki 
+  :group 'org-wiki
   )
 
 
@@ -137,9 +137,9 @@ You can toggle read-only mode with M-x read-only-mode or C-x C-q."
                         )
                          ;; path test if file exists (if fpath not nil)
                    (and  fpath
-                         ;; test if buffer file is in wiki location 
+                         ;; test if buffer file is in wiki location
                          (string-prefix-p (expand-file-name org-wiki-location) fpath)
-                         ;; test if buffer file has extension .org 
+                         ;; test if buffer file has extension .org
                          (string-suffix-p ".org" fpath)
                     )))
                (buffer-list)))
@@ -247,7 +247,7 @@ Example: '(\"Linux\" \"BSD\" \"Bash\"  \"Binary_Files\")"
 
 (defun org-wiki--assets-get-dir (pagename)
   "Get path to asset directory of given PAGENAME."
-  (org-wiki--concat-path org-wiki-location pagename))
+  (org-wiki--concat-path org-wiki-assets-location pagename))
 
 
 (defun org-wiki--assets-make-dir (pagename)
@@ -315,13 +315,13 @@ Will open the the wiki file Linux.org in
 
       ;; Action executed if file exists.
       (if org-wiki-default-read-only
-          ;; open file in read-only mode. 
+          ;; open file in read-only mode.
           (progn  (find-file  org-wiki-file)
                   (read-only-mode 1))
-          ;; open file in writable mode. 
+          ;; open file in writable mode.
           (find-file  org-wiki-file))
-        
-        ))) 
+
+        )))
 
 
 (defun org-wiki--assets-get-file (pagename filename)
@@ -723,24 +723,27 @@ to cancel the download."
 (defun org-wiki-export-with (org-exporter)
   "Export all pages to a given format. See full doc.
 ORG-EXPORTER is a function that exports an org-mode page to a specific format like html.
-It can be for instance: 
+It can be for instance:
 
-- org-html-publish-to-thml 
+- org-html-publish-to-thml
 - org-latex-publish-to-pdf
 - org-latex-publish-to-latex
 
-WARN: This is a synchronous function and can freeze Emacs. Emacs will freeze while 
+org-wiki-html-page2() using this function.
+
+WARN: This is a synchronous function and can freeze Emacs. Emacs will freeze while
 the exporting doesn't finish. Type C-g to abort the execution."
   (interactive)
   (let ((org-html-htmlize-output-type 'css)
         (org-html-htmlize-font-prefix "org-")
         )
+
     (org-publish
      `("html"
        :base-directory       ,org-wiki-location
        :base-extension        "org"
-       :publishing-directory  ,org-wiki-location
-       :publishing-function   ,org-exporter
+       :publishing-directory  ,org-wiki-export-location
+       :publishing-function    org-html-publish-to-html
        )
      t
      )))
@@ -748,18 +751,12 @@ the exporting doesn't finish. Type C-g to abort the execution."
 
 (defun org-wiki-export-html-sync ()
   "Export all pages to html in synchronous mode."
+  (message "using this function sync")
   (interactive)
   (let ((org-html-htmlize-output-type 'css)
         (org-html-htmlize-font-prefix "org-")
         )
-    (org-publish
-     `("html"
-       :base-directory       ,org-wiki-location
-       :base-extension        "org"
-       :publishing-directory  ,org-wiki-location
-       :publishing-function    org-html-publish-to-html
-       )
-     t
+    (org-publish "org_wiki_export" t t
      )))
 
 (defun org-wiki-export-html ()
@@ -834,7 +831,7 @@ Note: This function doesn't freeze Emacs since it starts another Emacs process."
 
 
 ;;
-;; Despite this function was implemented as a interface to 
+;; Despite this function was implemented as a interface to
 ;; Python3 simple http server, it can be refactored to work
 ;; with another more powerful http server such as Nginx.
 ;;
@@ -843,28 +840,28 @@ Note: This function doesn't freeze Emacs since it starts another Emacs process."
 Note: This command requires Python3 installed."
   (interactive)
   (let (
-        ;; Process name 
+        ;; Process name
         (pname  "org-wiki-server")
         ;; Buffer name - Display process output (stdout)
         (bname   "*org-wiki-server*")
         ;; Set current directory to org-wiki repository.
         (default-directory org-wiki-location))
 
- 
+
     (if (not (get-buffer bname))
-        
+
         (progn
 
           (sit-for 0.1)
           (switch-to-buffer bname)
 
-          
+
           (save-excursion ;; Save cursor position
-            
-           (insert "Server started ...\n\n")                               
+
+           (insert "Server started ...\n\n")
            (message "\nServer started ...\n")
 
-           ;; Show user Machine Network Interfaces IP addresses. 
+           ;; Show user Machine Network Interfaces IP addresses.
            (cl-case system-type
                                         ;;; Linux
              (gnu/linux       (insert (shell-command-to-string "ifconfig")))
@@ -874,7 +871,7 @@ Note: This command requires Python3 installed."
              (darwin          (insert (shell-command-to-string "ifconfig")))
                                         ;; Windows 7, 8, 10 - Kernel NT
              (windows-nt      (insert (shell-command-to-string "ipconfig"))))          )
-          
+
           (start-process pname
                          bname
                          "python3"
@@ -882,12 +879,12 @@ Note: This command requires Python3 installed."
                          "http.server"
                          "--bind"
                          org-wiki-server-host
-                         org-wiki-server-port)                                                               
-    
-                
+                         org-wiki-server-port)
+
+
                 (when (y-or-n-p "Open server in browser ?")
                   (browse-url (format "http://localhost:%s" org-wiki-server-port))))
-      
+
         (progn  (switch-to-buffer bname)
                 (kill-process (get-process pname))
                 (message "Server stopped.")
@@ -896,7 +893,7 @@ Note: This command requires Python3 installed."
 
 
 
-(defun org-wiki-paste-image ()  
+(defun org-wiki-paste-image ()
   "Paste a image asking the user for the file name."
   (interactive)
 
@@ -905,7 +902,7 @@ Note: This command requires Python3 installed."
                    (file-name-base
                     (buffer-file-name))))
            (image-name (read-string "Image name: " )))
-      
+
     (org-wiki--assets-make-dir dir)
 
     (insert "#+CAPTION: ")
@@ -934,7 +931,7 @@ Note: This command requires Python3 installed."
   (interactive)
   (let* ((dir   (file-name-base
                     (buffer-file-name))))
-    
+
     (org-wiki--assets-make-dir dir)
 
     (insert "#+CAPTION: ")
@@ -963,7 +960,7 @@ Note: This command requires Python3 installed."
   ;; The initial value - Set to 1 to enable by default
   nil
   ;; The indicator for the mode line.
-  nil 
+  nil
   ;; The minor mode keymap
   `(
     ;; Commands to Open Index page:
@@ -977,7 +974,7 @@ Note: This command requires Python3 installed."
     (,(kbd "hr")        .  org-wiki-helm-read-only)
     (,(kbd "hf")        .  org-wiki-helm-frame)
     (,(kbd "kk")        .  org-wiki-close)
-    
+
     ;; ==== Commands to browse directories =====
     (,(kbd "dw")        .  org-wiki-dired )
     (,(kbd "do")        .  org-wiki-open)
@@ -1000,10 +997,10 @@ Note: This command requires Python3 installed."
 
     (,(kbd "ttb")        . (lambda () (interactive) (tool-bar-mode 'toggle)))
     (,(kbd "ttm")        . (lambda () (interactive) (menu-bar-mode 'toggle)))
-    
+
     (,(kbd "q")         . (lambda () (interactive) (kill-buffer)))
     )
-   ;; Make mode local to buffer rather than global 
+   ;; Make mode local to buffer rather than global
    ;; :global t
 )
 
@@ -1030,14 +1027,14 @@ Note: This command requires Python3 installed."
   (find-dired org-wiki-location
               (mapconcat #'identity
                          '(
-                           "-not -path '*/.git*'"         ;; Exclude .git Directory 
+                           "-not -path '*/.git*'"         ;; Exclude .git Directory
                            "-and -not -name '.#*'"        ;; Exclude temporary files starting with #
                            "-and -not -name '#*'"
                            "-and -not -name '*#'"
                            "-and -not -name '*~' "        ;; Exclude ending with ~ (tilde)
-                           "-and -not -name '*.html' "    ;; Exclude html files 
+                           "-and -not -name '*.html' "    ;; Exclude html files
                            )
-                         
+
                          " "
                          )))
 
